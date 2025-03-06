@@ -7,7 +7,7 @@ import pandas as pd
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="💬", layout="wide")
-st.title("Chatbot")
+st.title("ZAK.AI")
 
 # API OpenAI
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
