@@ -1,9 +1,9 @@
-from openai import OpenAI
-import openai
-import streamlit as st
-import fitz  # PyMuPDF untuk membaca PDF
-import docx
-import pandas as pd
+from openai import OpenAI # type: ignore
+import openai # type: ignore
+import streamlit as st # type: ignore
+import fitz  # type: ignore # PyMuPDF untuk membaca PDF
+import docx # type: ignore
+import pandas as pd # type: ignore
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="💬", layout="wide")
@@ -13,7 +13,7 @@ st.title("ZAK.AI")
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-4o-mini"
+    st.session_state["openai_model"] = "gpt-4o"
 
 # Menyimpan chat history
 if "messages" not in st.session_state:

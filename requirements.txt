@@ -3,3 +3,9 @@ openai>=1.0.0
 streamlit-js-eval
 pymupdf
 python-docx
+
+##Upload your projecct in hithub first
+#git init > git add . > git commit -m "Initial Commit" > git branch -M main >
+#Copy remote repository URL > git remote add origin (paste url) > git branch -M main > git push -u origin main
+
+#To update our project file: git add . > git commit -m "Update the prompt" > git push
