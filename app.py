@@ -1,4 +1,3 @@
-from openai import OpenAI # type: ignore
 import openai # type: ignore
 import streamlit as st # type: ignore
 import fitz  # type: ignore # PyMuPDF untuk membaca PDF
@@ -6,11 +5,11 @@ import docx # type: ignore
 import pandas as pd # type: ignore
 
 # Konfigurasi halaman
-st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="💬", layout="wide")
-st.title("ZAK.AI")
+st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
+st.title("🚀 ZAK.AI - The Future of AI")
 
 # API OpenAI
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-4o-mini"
@@ -41,8 +40,11 @@ def extract_text_from_file(uploaded_file):
         return "\n".join([para.text for para in doc.paragraphs])
     
     elif file_extension in ["xls", "xlsx"]:
-        df = pd.read_excel(uploaded_file)
-        return df.to_string()
+        try:
+            df = pd.read_excel(uploaded_file, engine="openpyxl")
+            return df.to_string()
+        except ImportError:
+            return "Error: openpyxl belum terinstal. Silakan instal dengan `pip install openpyxl`."
     
     return None
 
