@@ -5,6 +5,9 @@ pymupdf
 python-docx
 openpyxl
 pyttsx3
+gTTS
+os
+tempfile
 
 ##Upload your projecct in hithub first
 #git init > git add . > git commit -m "Initial Commit" > git branch -M main >

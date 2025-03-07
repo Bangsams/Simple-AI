@@ -3,7 +3,9 @@ import streamlit as st # type: ignore
 import fitz  # type: ignore # PyMuPDF untuk membaca PDF
 import docx # type: ignore
 import pandas as pd # type: ignore
-import pyttsx3  # type: ignore # Library untuk text-to-speech
+from gtts import gTTS
+import os
+import tempfile
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
@@ -24,7 +26,7 @@ with st.sidebar:
     st.header("Chat History")
     for idx, msg in enumerate(st.session_state.messages):
         if msg["role"] != "system":
-            st.write(f"🔨 {msg['role'].capitalize()}: {msg['content'][:50]}{'...' if len(msg['content']) > 50 else ''}")
+            st.write(f"🗨️ {msg['role'].capitalize()}: {msg['content'][:50]}{'...' if len(msg['content']) > 50 else ''}")
 
 # Fungsi untuk membaca teks dari file
 def extract_text_from_file(uploaded_file):
@@ -49,6 +51,14 @@ def extract_text_from_file(uploaded_file):
     
     return None
 
+# Fungsi untuk mengubah teks menjadi suara dengan gTTS
+def speak(text):
+    tts = gTTS(text=text, lang='id')
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmpfile:
+        tts.save(tmpfile.name)
+        st.audio(tmpfile.name, format='audio/mp3')
+        os.unlink(tmpfile.name)
+
 # Menampilkan riwayat chat di chat utama
 for message in st.session_state.messages:
     if message["role"] != "system":
@@ -66,12 +76,6 @@ if uploaded_file:
     else:
         st.warning("File tidak dapat dianalisis atau tidak mengandung teks.")
 
-# Fungsi untuk Text-to-Speech
-def speak(text):
-    engine = pyttsx3.init()
-    engine.say(text)
-    engine.runAndWait()
-
 # Input dari pengguna
 if prompt := st.chat_input("Ketik pesan..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -87,8 +91,6 @@ if prompt := st.chat_input("Ketik pesan..."):
         )
         reply = "".join(chunk.choices[0].delta.content or "" for chunk in response)
         st.markdown(reply)
-        
-        # Mengaktifkan suara
-        speak(reply)
+        speak(reply)  # Memanggil fungsi suara
     
     st.session_state.messages.append({"role": "assistant", "content": reply})
