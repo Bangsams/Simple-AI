@@ -3,9 +3,6 @@ import streamlit as st # type: ignore
 import fitz  # type: ignore # PyMuPDF untuk membaca PDF
 import docx # type: ignore
 import pandas as pd # type: ignore
-from gtts import gTTS
-import os
-import tempfile
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
@@ -51,14 +48,6 @@ def extract_text_from_file(uploaded_file):
     
     return None
 
-# Fungsi untuk mengubah teks menjadi suara dengan gTTS
-def speak(text):
-    tts = gTTS(text=text, lang='id')
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmpfile:
-        tts.save(tmpfile.name)
-        st.audio(tmpfile.name, format='audio/mp3')
-        os.unlink(tmpfile.name)
-
 # Menampilkan riwayat chat di chat utama
 for message in st.session_state.messages:
     if message["role"] != "system":
@@ -91,6 +80,5 @@ if prompt := st.chat_input("Ketik pesan..."):
         )
         reply = "".join(chunk.choices[0].delta.content or "" for chunk in response)
         st.markdown(reply)
-        speak(reply)  # Memanggil fungsi suara
     
     st.session_state.messages.append({"role": "assistant", "content": reply})
