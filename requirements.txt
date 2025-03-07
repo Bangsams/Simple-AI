@@ -3,6 +3,7 @@ openai>=1.0.0
 streamlit-js-eval
 pymupdf
 python-docx
+openpyxl
 
 ##Upload your projecct in hithub first
 #git init > git add . > git commit -m "Initial Commit" > git branch -M main >
