@@ -4,7 +4,6 @@ import fitz  # type: ignore # PyMuPDF untuk membaca PDF
 import docx # type: ignore
 import pandas as pd # type: ignore
 from PIL import Image # Untuk memproses gambar
-import pytesseract # Untuk ekstraksi teks dari gambar
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
@@ -50,12 +49,22 @@ def extract_text_from_file(uploaded_file):
     
     return None
 
-# Fungsi untuk menganalisis gambar
-def analyze_image(uploaded_image):
+# Fungsi untuk menganalisis gambar dengan AI
+def analyze_image_with_ai(uploaded_image):
     try:
         image = Image.open(uploaded_image)
-        text = pytesseract.image_to_string(image)
-        return text if text.strip() else "Tidak ada teks yang terdeteksi."
+        image_bytes = uploaded_image.read()
+        
+        response = client.chat.completions.create(
+            model=st.session_state["openai_model"],
+            messages=[
+                {"role": "system", "content": "You are an AI that analyzes images."},
+                {"role": "user", "content": "Analyze this image."}
+            ],
+            files=[{"type": "image", "content": image_bytes}]
+        )
+        
+        return response.choices[0].message["content"]
     except Exception as e:
         return f"Error dalam analisis gambar: {str(e)}"
 
@@ -72,9 +81,9 @@ if uploaded_file:
     file_extension = uploaded_file.name.split(".")[-1].lower()
     if file_extension in ["jpg", "png"]:
         st.image(uploaded_file, caption=f"Uploaded: {uploaded_file.name}", use_column_width=True)
-        image_text = analyze_image(uploaded_file)
-        st.session_state.messages.append({"role": "user", "content": f"📂 Gambar uploaded: {uploaded_file.name}\n\nTeks terdeteksi:\n{image_text}"})
-        st.chat_message("user").markdown(f"📂 Gambar uploaded: {uploaded_file.name}\n\nTeks terdeteksi:\n{image_text}")
+        image_analysis = analyze_image_with_ai(uploaded_file)
+        st.session_state.messages.append({"role": "user", "content": f"📂 Gambar uploaded: {uploaded_file.name}\n\nAnalisis AI:\n{image_analysis}"})
+        st.chat_message("user").markdown(f"📂 Gambar uploaded: {uploaded_file.name}\n\nAnalisis AI:\n{image_analysis}")
     else:
         file_text = extract_text_from_file(uploaded_file)
         if file_text:

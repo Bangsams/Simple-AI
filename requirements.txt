@@ -5,7 +5,6 @@ pymupdf
 python-docx
 openpyxl
 pillow
-pytesseract
 
 
 ##Upload your projecct in hithub first
