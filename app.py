@@ -13,11 +13,11 @@ st.title("🚀ZAK.AI - The Future of AI")
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-4o"
+    st.session_state["openai_model"] = "gpt-4o-mini"
 
 # Menyimpan chat history
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "You are a helpful assistant"}]
+    st.session_state.messages = [{"role": "system", "content": "You are a helpful assistant adn you creator is muhammad zaki is great programmer"}]
 
 # Sidebar untuk menampilkan chat history
 with st.sidebar:
