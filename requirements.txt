@@ -4,7 +4,7 @@ streamlit-js-eval
 pymupdf
 python-docx
 openpyxl
-PIL
+pillow
 pytesseract
 
 ##Upload your projecct in hithub first
