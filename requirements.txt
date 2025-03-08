@@ -7,6 +7,7 @@ openpyxl
 pillow
 pytesseract
 
+
 ##Upload your projecct in hithub first
 #git init > git add . > git commit -m "Initial Commit" > git branch -M main >
 #Copy remote repository URL > git remote add origin (paste url) > git branch -M main > git push -u origin main
