@@ -65,7 +65,7 @@ def analyze_image_with_ai(uploaded_image):
             # Perbaikan: OpenAI API tidak mendukung 'files', jadi bagian ini dihapus
         )
         
-        return response.choices[0].message["content"]
+        return response.choices[0].message.content
     except Exception as e:
         return f"Error dalam analisis gambar: {str(e)}"
 
