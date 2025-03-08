@@ -3,6 +3,8 @@ import streamlit as st # type: ignore
 import fitz  # type: ignore # PyMuPDF untuk membaca PDF
 import docx # type: ignore
 import pandas as pd # type: ignore
+from PIL import Image # Untuk memproses gambar
+import pytesseract # Untuk ekstraksi teks dari gambar
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
@@ -48,6 +50,15 @@ def extract_text_from_file(uploaded_file):
     
     return None
 
+# Fungsi untuk menganalisis gambar
+def analyze_image(uploaded_image):
+    try:
+        image = Image.open(uploaded_image)
+        text = pytesseract.image_to_string(image)
+        return text if text.strip() else "Tidak ada teks yang terdeteksi."
+    except Exception as e:
+        return f"Error dalam analisis gambar: {str(e)}"
+
 # Menampilkan riwayat chat di chat utama
 for message in st.session_state.messages:
     if message["role"] != "system":
@@ -55,15 +66,22 @@ for message in st.session_state.messages:
             st.markdown(message["content"])
 
 # Upload file
-uploaded_file = st.file_uploader("Upload File (PDF, Word, Excel)", type=["pdf", "docx", "xls", "xlsx"])
+uploaded_file = st.file_uploader("Upload File (PDF, Word, Excel, JPG, PNG)", type=["pdf", "docx", "xls", "xlsx", "jpg", "png"])
 
 if uploaded_file:
-    file_text = extract_text_from_file(uploaded_file)
-    if file_text:
-        st.session_state.messages.append({"role": "user", "content": f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}"})
-        st.chat_message("user").markdown(f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}")
+    file_extension = uploaded_file.name.split(".")[-1].lower()
+    if file_extension in ["jpg", "png"]:
+        st.image(uploaded_file, caption=f"Uploaded: {uploaded_file.name}", use_column_width=True)
+        image_text = analyze_image(uploaded_file)
+        st.session_state.messages.append({"role": "user", "content": f"📂 Gambar uploaded: {uploaded_file.name}\n\nTeks terdeteksi:\n{image_text}"})
+        st.chat_message("user").markdown(f"📂 Gambar uploaded: {uploaded_file.name}\n\nTeks terdeteksi:\n{image_text}")
     else:
-        st.warning("File tidak dapat dianalisis atau tidak mengandung teks.")
+        file_text = extract_text_from_file(uploaded_file)
+        if file_text:
+            st.session_state.messages.append({"role": "user", "content": f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}"})
+            st.chat_message("user").markdown(f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}")
+        else:
+            st.warning("File tidak dapat dianalisis atau tidak mengandung teks.")
 
 # Input dari pengguna
 if prompt := st.chat_input("Ketik pesan..."):
