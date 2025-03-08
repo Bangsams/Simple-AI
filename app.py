@@ -17,7 +17,7 @@ if "openai_model" not in st.session_state:
 
 # Menyimpan chat history
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "You are a helpful assistant adn you creator is muhammad zaki is great programmer"}]
+    st.session_state.messages = [{"role": "system", "content": "You are a helpful assistant"}]
 
 # Sidebar untuk menampilkan chat history
 with st.sidebar:
