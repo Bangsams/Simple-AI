@@ -24,7 +24,7 @@ with st.sidebar:
     st.header("Chat History")
     for idx, msg in enumerate(st.session_state.messages):
         if msg["role"] != "system":
-            st.write(f"🗨️ {msg['role'].capitalize()}: {msg['content'][:50]}{'...' if len(msg['content']) > 50 else ''}")
+            st.write(f"🔦 {msg['role'].capitalize()}: {msg['content'][:50]}{'...' if len(msg['content']) > 50 else ''}")
 
 # Fungsi untuk membaca teks dari file
 def extract_text_from_file(uploaded_file):
@@ -53,7 +53,7 @@ def extract_text_from_file(uploaded_file):
 def analyze_image_with_ai(uploaded_image):
     try:
         image = Image.open(uploaded_image)
-        image_bytes = uploaded_image.read()
+        image_bytes = uploaded_image.getvalue()  # Perbaikan: menggunakan getvalue()
         
         response = client.chat.completions.create(
             model=st.session_state["openai_model"],
@@ -61,7 +61,8 @@ def analyze_image_with_ai(uploaded_image):
                 {"role": "system", "content": "You are an AI that analyzes images."},
                 {"role": "user", "content": "Analyze this image."}
             ],
-            files=[{"type": "image", "content": image_bytes}]
+            
+            # Perbaikan: OpenAI API tidak mendukung 'files', jadi bagian ini dihapus
         )
         
         return response.choices[0].message["content"]
