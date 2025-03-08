@@ -5,6 +5,9 @@ import docx # type: ignore
 import pandas as pd # type: ignore
 from PIL import Image # Untuk memproses gambar
 import pytesseract # Untuk ekstraksi teks dari gambar
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
