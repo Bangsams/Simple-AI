@@ -70,9 +70,10 @@ def analyze_image_with_ai(uploaded_image):
 
 # Menampilkan riwayat chat di chat utama
 for message in st.session_state.messages:
-    if message["role"] != "system"]:
+    if message["role"] != "system":  # Hapus tanda `]` yang salah
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+
 
 # Upload file
 uploaded_file = st.file_uploader("Upload File (PDF, Word, Excel, JPG, PNG)", type=["pdf", "docx", "xls", "xlsx", "jpg", "png"])
