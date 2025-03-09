@@ -5,7 +5,7 @@ pymupdf
 python-docx
 openpyxl
 pillow
-time
+
 
 
 ##Upload your projecct in hithub first
