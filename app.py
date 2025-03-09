@@ -3,7 +3,8 @@ import streamlit as st # type: ignore
 import fitz  # type: ignore # PyMuPDF untuk membaca PDF
 import docx # type: ignore
 import pandas as pd # type: ignore
-from PIL import Image # Untuk memproses gambar
+from PIL import Image # type: ignore # Untuk memproses gambar
+import time
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
@@ -53,7 +54,7 @@ def extract_text_from_file(uploaded_file):
 def analyze_image_with_ai(uploaded_image):
     try:
         image = Image.open(uploaded_image)
-        image_bytes = uploaded_image.getvalue()  # Perbaikan: menggunakan getvalue()
+        image_bytes = uploaded_image.getvalue()
         
         response = client.chat.completions.create(
             model=st.session_state["openai_model"],
@@ -69,7 +70,7 @@ def analyze_image_with_ai(uploaded_image):
 
 # Menampilkan riwayat chat di chat utama
 for message in st.session_state.messages:
-    if message["role"] != "system":
+    if message["role"] != "system"]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
@@ -104,13 +105,13 @@ if prompt := st.chat_input("Ketik pesan..."):
             messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
             stream=True,
         )
+        reply = ""
+        message_placeholder = st.empty()
         
-        def response_generator():
-            reply = ""
-            for chunk in response:
-                text_chunk = chunk.choices[0].delta.content or ""
-                reply += text_chunk
-                yield text_chunk  # Mengirim teks satu per satu ke UI
-            st.session_state.messages.append({"role": "assistant", "content": reply})
-        
-        st.write_stream(response_generator)
+        for chunk in response:
+            text = chunk.choices[0].delta.content or ""
+            reply += text
+            message_placeholder.markdown(reply)
+            time.sleep(0.05)
+    
+    st.session_state.messages.append({"role": "assistant", "content": reply})
