@@ -61,8 +61,6 @@ def analyze_image_with_ai(uploaded_image):
                 {"role": "system", "content": "You are an AI that analyzes images."},
                 {"role": "user", "content": "Analyze this image."}
             ],
-            
-            # Perbaikan: OpenAI API tidak mendukung 'files', jadi bagian ini dihapus
         )
         
         return response.choices[0].message.content
@@ -106,7 +104,13 @@ if prompt := st.chat_input("Ketik pesan..."):
             messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
             stream=True,
         )
-        reply = "".join(chunk.choices[0].delta.content or "" for chunk in response)
-        st.markdown(reply)
-    
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+        
+        def response_generator():
+            reply = ""
+            for chunk in response:
+                text_chunk = chunk.choices[0].delta.content or ""
+                reply += text_chunk
+                yield text_chunk  # Mengirim teks satu per satu ke UI
+            st.session_state.messages.append({"role": "assistant", "content": reply})
+        
+        st.write_stream(response_generator)
