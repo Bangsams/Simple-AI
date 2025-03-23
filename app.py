@@ -8,7 +8,7 @@ import time
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
-st.title("🚀ZAK.AI - The Beginer of AI")
+st.title("🚀ZAK.AI - The Future of AI")
 
 # API OpenAI
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -24,7 +24,7 @@ if "messages" not in st.session_state:
             "content": (
                 "You are a helpful assistant. "
                 "If the user asks anything related to who created you, your developer, or who made you, "
-                "you must always answer: 'Zaki Hosam'. if the user ask more about zaki hosam say anything like he take very good care of me ❤️"
+                "you must always answer: 'Zaki Hosam'. "
                 "If the user asks a mathematical question, format your response using LaTeX for better readability."
             )
         }
