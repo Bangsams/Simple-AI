@@ -117,14 +117,16 @@ if prompt := st.chat_input("Ketik pesan..."):
             messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
             stream=True,
         )
+        
         reply = ""
         message_placeholder = st.empty()
         
         for chunk in response:
-            text = chunk.choices[0].delta.content or ""
-            reply += text
-            message_placeholder.markdown(reply)
-            time.sleep(0.05)
+            if chunk.choices and chunk.choices[0].delta.content:
+                text = chunk.choices[0].delta.content
+                reply += text
+                message_placeholder.markdown(reply)
+                time.sleep(0.05)
 
     # **Menampilkan jawaban dalam format LaTeX jika ada rumus matematika**
     if "$" in reply or "\\" in reply:
