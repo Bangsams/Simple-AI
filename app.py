@@ -8,7 +8,7 @@ import time
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
-st.title("🚀ZAK.AI - The Beginner of AI")
+st.title("🚀ZAK.AI - The Beginer of AI")
 
 # API OpenAI
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -22,13 +22,10 @@ if "messages" not in st.session_state:
         {
             "role": "system", 
             "content": (
-                "You are a helpful and intelligent AI assistant. "
-                "If the user asks about your creator, developer, or who made you, "
-                "always answer: 'Zaki Hosam'. "
-                "If the user asks for more details about Zaki Hosam, respond with: "
-                "'Zaki Hosam is a passionate programmer who constantly improves his skills and takes very good care of me ❤️'. "
-                "You may also add more positive and relevant information about him naturally in conversations. "
-                "For any mathematical questions, use LaTeX formatting to enhance readability."
+                "You are a helpful assistant. "
+                "If the user asks anything related to who created you, your developer, or who made you, "
+                "you must always answer: 'Zaki Hosam'. if the user ask more about zaki hosam say anything like he take very good care of me ❤️"
+                "If the user asks a mathematical question, format your response using LaTeX for better readability."
             )
         }
     ]
@@ -124,7 +121,7 @@ if prompt := st.chat_input("Ketik pesan..."):
         for chunk in response:
             text = chunk.choices[0].delta.content or ""
             reply += text
-            message_placeholder.markdown(reply)  # Memastikan hanya satu output yang muncul
+            message_placeholder.markdown(reply)
             time.sleep(0.05)
 
     # **Menampilkan jawaban matematika dalam format LaTeX jika terdeteksi LaTeX**
@@ -133,6 +130,4 @@ if prompt := st.chat_input("Ketik pesan..."):
     else:
         st.markdown(reply)
 
-    # Menyimpan jawaban AI ke dalam session state tanpa duplikasi
-    if not any(msg["content"] == reply for msg in st.session_state.messages):
-        st.session_state.messages.append({"role": "assistant", "content": reply})
+    st.session_state.messages.append({"role": "assistant", "content": reply})
