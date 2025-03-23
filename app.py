@@ -8,7 +8,7 @@ import time
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
-st.title("🚀ZAK.AI - The Beginer of AI")
+st.title("🚀ZAK.AI - The Beginner of AI")
 
 # API OpenAI
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -32,7 +32,6 @@ if "messages" not in st.session_state:
             )
         }
     ]
-
 
 # Sidebar untuk menampilkan chat history
 with st.sidebar:
@@ -125,7 +124,7 @@ if prompt := st.chat_input("Ketik pesan..."):
         for chunk in response:
             text = chunk.choices[0].delta.content or ""
             reply += text
-            message_placeholder.markdown(reply)
+            message_placeholder.markdown(reply)  # Memastikan hanya satu output yang muncul
             time.sleep(0.05)
 
     # **Menampilkan jawaban matematika dalam format LaTeX jika terdeteksi LaTeX**
@@ -134,4 +133,6 @@ if prompt := st.chat_input("Ketik pesan..."):
     else:
         st.markdown(reply)
 
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+    # Menyimpan jawaban AI ke dalam session state tanpa duplikasi
+    if not any(msg["content"] == reply for msg in st.session_state.messages):
+        st.session_state.messages.append({"role": "assistant", "content": reply})
