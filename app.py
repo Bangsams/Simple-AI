@@ -5,6 +5,7 @@ import docx # type: ignore
 import pandas as pd # type: ignore
 from PIL import Image # type: ignore # Untuk memproses gambar
 import time
+import re  # Untuk mendeteksi format LaTeX
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
@@ -27,7 +28,6 @@ if "messages" not in st.session_state:
                 "you must always answer: 'Zaki Hosam'."
                 "if the user ask more about Zaki Hosam, "
                 "you can answer anything like: 'Zaki Hosam is beginner programmer and learner of life. he always protect me as well and take care of me ❤️"
-                "For any mathematical questions, use LaTeX formatting to display equations clearly."
             )
         }
     ]
@@ -104,6 +104,19 @@ if uploaded_file:
         else:
             st.warning("File tidak dapat dianalisis atau tidak mengandung teks.")
 
+# Fungsi untuk mendeteksi dan menampilkan LaTeX
+def display_with_latex(text):
+    latex_pattern = r"\$\$(.*?)\$\$|\$(.*?)\$"
+    parts = re.split(latex_pattern, text)
+
+    for part in parts:
+        if part is None:
+            continue
+        if part.startswith("\\") or "^" in part or "_" in part:
+            st.latex(part.strip("$"))
+        else:
+            st.markdown(part)
+
 # Input dari pengguna
 if prompt := st.chat_input("Ketik pesan..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -117,21 +130,16 @@ if prompt := st.chat_input("Ketik pesan..."):
             messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
             stream=True,
         )
-        
         reply = ""
         message_placeholder = st.empty()
-        
-        for chunk in response:
-            if chunk.choices and chunk.choices[0].delta.content:
-                text = chunk.choices[0].delta.content
-                reply += text
-                message_placeholder.markdown(reply)
-                time.sleep(0.05)
 
-    # **Menampilkan jawaban dalam format LaTeX jika ada rumus matematika**
-    if "$" in reply or "\\" in reply:
-        st.latex(reply)
-    else:
-        st.markdown(reply)
+        for chunk in response:
+            text = chunk.choices[0].delta.content or ""
+            reply += text
+            message_placeholder.markdown(reply)  # Streaming teks biasa
+
+        # Tampilkan jawaban dengan LaTeX setelah streaming selesai
+        message_placeholder.empty()
+        display_with_latex(reply)
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
