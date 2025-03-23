@@ -1,14 +1,14 @@
-import openai  # type: ignore
-import streamlit as st  # type: ignore
-import fitz  # type: ignore  # PyMuPDF untuk membaca PDF
-import docx  # type: ignore
-import pandas as pd  # type: ignore
-from PIL import Image  # type: ignore  # Untuk memproses gambar
+import openai # type: ignore
+import streamlit as st # type: ignore
+import fitz  # type: ignore # PyMuPDF untuk membaca PDF
+import docx # type: ignore
+import pandas as pd # type: ignore
+from PIL import Image # type: ignore # Untuk memproses gambar
 import time
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
-st.title("🚀ZAK.AI - The Future of AI")
+st.title("🚀ZAK.AI - The Beginner of AI")
 
 # API OpenAI
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -23,7 +23,7 @@ if "messages" not in st.session_state:
 # Sidebar untuk menampilkan chat history
 with st.sidebar:
     st.header("Chat History")
-    for msg in st.session_state.messages:
+    for idx, msg in enumerate(st.session_state.messages):
         if msg["role"] != "system":
             st.write(f"🔦 {msg['role'].capitalize()}: {msg['content'][:50]}{'...' if len(msg['content']) > 50 else ''}")
 
@@ -33,29 +33,29 @@ def extract_text_from_file(uploaded_file):
         return None
 
     file_extension = uploaded_file.name.split(".")[-1].lower()
+    if file_extension == "pdf":
+        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        return "\n".join([page.get_text() for page in doc])
     
-    try:
-        if file_extension == "pdf":
-            doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-            return "\n".join([page.get_text() for page in doc])
-        
-        elif file_extension in ["doc", "docx"]:
-            doc = docx.Document(uploaded_file)
-            return "\n".join([para.text for para in doc.paragraphs])
-        
-        elif file_extension in ["xls", "xlsx"]:
+    elif file_extension in ["doc", "docx"]:
+        doc = docx.Document(uploaded_file)
+        return "\n".join([para.text for para in doc.paragraphs])
+    
+    elif file_extension in ["xls", "xlsx"]:
+        try:
             df = pd.read_excel(uploaded_file, engine="openpyxl")
             return df.to_string()
-
-    except Exception as e:
-        return f"Error membaca file: {str(e)}"
+        except ImportError:
+            return "Error: openpyxl belum terinstal. Silakan instal dengan `pip install openpyxl`."
     
-    return "Format file tidak didukung."
+    return None
 
 # Fungsi untuk menganalisis gambar dengan AI
 def analyze_image_with_ai(uploaded_image):
     try:
-        Image.open(uploaded_image)  # Pastikan file dapat dibuka sebagai gambar
+        image = Image.open(uploaded_image)
+        image_bytes = uploaded_image.getvalue()
+        
         response = client.chat.completions.create(
             model=st.session_state["openai_model"],
             messages=[
@@ -63,6 +63,7 @@ def analyze_image_with_ai(uploaded_image):
                 {"role": "user", "content": "Analyze this image."}
             ],
         )
+        
         return response.choices[0].message.content
     except Exception as e:
         return f"Error dalam analisis gambar: {str(e)}"
@@ -85,21 +86,24 @@ if uploaded_file:
         st.chat_message("user").markdown(f"📂 Gambar uploaded: {uploaded_file.name}\n\nAnalisis AI:\n{image_analysis}")
     else:
         file_text = extract_text_from_file(uploaded_file)
-        st.session_state.messages.append({"role": "user", "content": f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}"})
-        st.chat_message("user").markdown(f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}")
+        if file_text:
+            st.session_state.messages.append({"role": "user", "content": f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}"})
+            st.chat_message("user").markdown(f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}")
+        else:
+            st.warning("File tidak dapat dianalisis atau tidak mengandung teks.")
 
 # Input dari pengguna
 if prompt := st.chat_input("Ketik pesan..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    
     special_keywords = ["siapa pembuat", "developer", "siapa yang membuat ai ini", "siapa pencipta"]
     
     if any(keyword in prompt.lower() for keyword in special_keywords):
         response_text = "Zaki Hosam adalah seorang programmer pemula yang sedang belajar dan mengembangkan AI ini sebagai proyek eksplorasi. AI ini dirancang untuk membantu dalam berbagai tugas, termasuk membaca dokumen dan menganalisis gambar."
     else:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        
-        # Respon AI
+        # Respon AI seperti biasa
         with st.chat_message("assistant"):
             response = client.chat.completions.create(
                 model=st.session_state["openai_model"],
@@ -116,5 +120,8 @@ if prompt := st.chat_input("Ketik pesan..."):
                 time.sleep(0.05)
         
         response_text = reply
+
+    with st.chat_message("assistant"):
+        st.markdown(response_text)
     
     st.session_state.messages.append({"role": "assistant", "content": response_text})
