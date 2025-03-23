@@ -95,24 +95,29 @@ if uploaded_file:
 
 # Input dari pengguna
 if prompt := st.chat_input("Ketik pesan..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    
-    # Respon AI
-    with st.chat_message("assistant"):
-        response = client.chat.completions.create(
-            model=st.session_state["openai_model"],
-            messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-            stream=True,
-        )
-        reply = ""
-        message_placeholder = st.empty()
+    if "siapa pembuat" in prompt.lower() or "developer" in prompt.lower():
+        response_text = "Zaki Hosam"
+    else:
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
         
-        for chunk in response:
-            text = chunk.choices[0].delta.content or ""
-            reply += text
-            message_placeholder.markdown(reply)
-            time.sleep(0.05)
+        # Respon AI
+        with st.chat_message("assistant"):
+            response = client.chat.completions.create(
+                model=st.session_state["openai_model"],
+                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+                stream=True,
+            )
+            reply = ""
+            message_placeholder = st.empty()
+            
+            for chunk in response:
+                text = chunk.choices[0].delta.content or ""
+                reply += text
+                message_placeholder.markdown(reply)
+                time.sleep(0.05)
+        
+        response_text = reply
     
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+    st.session_state.messages.append({"role": "assistant", "content": response_text})
