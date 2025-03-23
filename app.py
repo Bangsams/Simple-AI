@@ -8,7 +8,7 @@ import time
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
-st.title("🚀ZAK.AI - The Future of AI")
+st.title("🚀ZAK.AI - The beginer of AI")
 
 # API OpenAI
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
