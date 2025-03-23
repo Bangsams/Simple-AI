@@ -8,7 +8,7 @@ import time
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
-st.title("🚀ZAK.AI - The Beginner of AI")
+st.title("🚀ZAK.AI - The Future of AI")
 
 # API OpenAI
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -18,7 +18,16 @@ if "openai_model" not in st.session_state:
 
 # Menyimpan chat history
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "You are a helpful assistant"}]
+    st.session_state.messages = [
+        {
+            "role": "system", 
+            "content": (
+                "You are a helpful assistant. "
+                "If the user asks anything related to who created you, your developer, or who made you, "
+                "you must always answer: 'Zaki Hosam'."
+            )
+        }
+    ]
 
 # Sidebar untuk menampilkan chat history
 with st.sidebar:
@@ -97,31 +106,21 @@ if prompt := st.chat_input("Ketik pesan..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-    
-    special_keywords = ["siapa pembuat", "developer", "siapa yang membuat ai ini", "siapa pencipta"]
-    
-    if any(keyword in prompt.lower() for keyword in special_keywords):
-        response_text = "Zaki Hosam adalah seorang programmer pemula yang sedang belajar dan mengembangkan AI ini sebagai proyek eksplorasi. AI ini dirancang untuk membantu dalam berbagai tugas, termasuk membaca dokumen dan menganalisis gambar."
-    else:
-        # Respon AI seperti biasa
-        with st.chat_message("assistant"):
-            response = client.chat.completions.create(
-                model=st.session_state["openai_model"],
-                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-                stream=True,
-            )
-            reply = ""
-            message_placeholder = st.empty()
-            
-            for chunk in response:
-                text = chunk.choices[0].delta.content or ""
-                reply += text
-                message_placeholder.markdown(reply)
-                time.sleep(0.05)
-        
-        response_text = reply
 
+    # Respon AI
     with st.chat_message("assistant"):
-        st.markdown(response_text)
-    
-    st.session_state.messages.append({"role": "assistant", "content": response_text})
+        response = client.chat.completions.create(
+            model=st.session_state["openai_model"],
+            messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+            stream=True,
+        )
+        reply = ""
+        message_placeholder = st.empty()
+        
+        for chunk in response:
+            text = chunk.choices[0].delta.content or ""
+            reply += text
+            message_placeholder.markdown(reply)
+            time.sleep(0.05)
+
+    st.session_state.messages.append({"role": "assistant", "content": reply})
