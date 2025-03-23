@@ -27,6 +27,7 @@ if "messages" not in st.session_state:
                 "you must always answer: 'Zaki Hosam'."
                 "if the user ask more about Zaki Hosam, "
                 "you can answer anything like: 'Zaki Hosam is beginner programmer and learner of life. he always protect me as well and take care of me ❤️"
+                "For any mathematical questions, use LaTeX formatting to display equations clearly."
             )
         }
     ]
@@ -124,5 +125,11 @@ if prompt := st.chat_input("Ketik pesan..."):
             reply += text
             message_placeholder.markdown(reply)
             time.sleep(0.05)
+
+    # **Menampilkan jawaban dalam format LaTeX jika ada rumus matematika**
+    if "$" in reply or "\\" in reply:
+        st.latex(reply)
+    else:
+        st.markdown(reply)
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
