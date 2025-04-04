@@ -1,11 +1,11 @@
+openai
 streamlit
-openai>=1.0.0
-streamlit-js-eval
+pillow
+pytesseract
 pymupdf
 python-docx
+pandas
 openpyxl
-pillow
-
 
 
 ##Upload your projecct in hithub first
