@@ -6,6 +6,13 @@ pymupdf
 python-docx
 pandas
 openpyxl
+streamlit
+openai
+python-docx
+docxcompose
+lxml
+python-dotenv
+openai>=1.0.0
 
 
 ##Upload your projecct in hithub first

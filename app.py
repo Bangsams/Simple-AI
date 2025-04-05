@@ -8,6 +8,10 @@ import pytesseract  # type: ignore
 import time
 import base64
 import re
+from docx.shared import RGBColor
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+import io
 
 # Konfigurasi halaman
 st.set_page_config(page_title="Chatbot dengan File Upload", page_icon="🚀", layout="wide")
@@ -17,9 +21,8 @@ st.title("🚀ZAK.AI - The beginner of AI")
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-4o"  # Model baru untuk support gambar
+    st.session_state["openai_model"] = "gpt-4o"
 
-# Menyimpan chat history
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
@@ -37,22 +40,22 @@ if "messages" not in st.session_state:
 # Sidebar untuk menampilkan chat history
 with st.sidebar:
     st.header("Chat History")
-    for idx, msg in enumerate(st.session_state.messages):
+    for msg in st.session_state.messages:
         if msg["role"] != "system":
             st.write(f"🔦 {msg['role'].capitalize()}: {msg['content'][:50]}{'...' if len(msg['content']) > 50 else ''}")
 
-# Fungsi untuk membaca teks dari file
+# Fungsi: Ekstrak teks dari berbagai file
 def extract_text_from_file(uploaded_file):
     if uploaded_file is None:
         return None
-    file_extension = uploaded_file.name.split(".")[-1].lower()
-    if file_extension == "pdf":
+    ext = uploaded_file.name.split(".")[-1].lower()
+    if ext == "pdf":
         doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
         return "\n".join([page.get_text() for page in doc])
-    elif file_extension in ["doc", "docx"]:
+    elif ext in ["doc", "docx"]:
         doc = docx.Document(uploaded_file)
         return "\n".join([para.text for para in doc.paragraphs])
-    elif file_extension in ["xls", "xlsx"]:
+    elif ext in ["xls", "xlsx"]:
         try:
             df = pd.read_excel(uploaded_file, engine="openpyxl")
             return df.to_string()
@@ -60,12 +63,28 @@ def extract_text_from_file(uploaded_file):
             return "Error: openpyxl belum terinstal. Silakan instal dengan `pip install openpyxl`."
     return None
 
-# Fungsi untuk menganalisis gambar menggunakan OpenAI Vision
+# Fungsi: Tambahkan komentar ke file Word
+def add_comments_to_docx(doc: docx.Document, suggestions: list[str]) -> bytes:
+    paragraphs = [p for p in doc.paragraphs if p.text.strip()]
+    for i, suggestion in enumerate(suggestions):
+        if i < len(paragraphs):
+            p = paragraphs[i]
+            run = p.add_run(" ← Lihat komentar")
+            run.font.color.rgb = RGBColor(255, 0, 0)
+            comment = OxmlElement("w:commentRangeStart")
+            comment.set(qn("w:id"), str(i))
+            p._p.insert(0, comment)
+            p.add_run(f"\n📝 Komentar AI: {suggestion}").italic = True
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
+# Fungsi: Analisis gambar menggunakan GPT-4o
 def analyze_image_with_ai(image_file, user_prompt):
     try:
         buffered = image_file.getvalue()
         base64_image = base64.b64encode(buffered).decode("utf-8")
-
         response = client.chat.completions.create(
             model="gpt-4-turbo",
             messages=[
@@ -84,7 +103,7 @@ def analyze_image_with_ai(image_file, user_prompt):
     except Exception as e:
         return f"Error dalam analisis gambar: {str(e)}"
 
-# Menampilkan riwayat chat
+# Tampilkan riwayat chat
 for message in st.session_state.messages:
     if message["role"] != "system":
         with st.chat_message(message["role"]):
@@ -94,6 +113,8 @@ for message in st.session_state.messages:
 uploaded_file = st.file_uploader("Upload File (PDF, Word, Excel, JPG, PNG)", type=["pdf", "docx", "xls", "xlsx", "jpg", "png"])
 
 image_prompt = ""
+prompt = ""
+
 if uploaded_file:
     file_extension = uploaded_file.name.split(".")[-1].lower()
     if file_extension in ["jpg", "png"]:
@@ -103,13 +124,7 @@ if uploaded_file:
             image_analysis = analyze_image_with_ai(uploaded_file, image_prompt)
             st.session_state.messages.append({"role": "user", "content": f"📂 Gambar uploaded: {uploaded_file.name}\n📩 Prompt: {image_prompt}\n\nAnalisis AI:\n{image_analysis}"})
             st.chat_message("user").markdown(f"📂 Gambar uploaded: {uploaded_file.name}\n📩 Prompt: {image_prompt}\n\nAnalisis AI:\n{image_analysis}")
-    else:
-        file_text = extract_text_from_file(uploaded_file)
-        if file_text:
-            st.session_state.messages.append({"role": "user", "content": f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}"})
-            st.chat_message("user").markdown(f"📂 File uploaded: {uploaded_file.name}\n\n{file_text}")
-        else:
-            st.warning("File tidak dapat dianalisis atau tidak mengandung teks.")
+
 
 # Input pengguna
 if prompt := st.chat_input("Ketik pesan..."):
@@ -117,7 +132,33 @@ if prompt := st.chat_input("Ketik pesan..."):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    if "buat" in prompt.lower() and "gambar" in prompt.lower():
+    # Koreksi dokumen Word jika ada perintah revisi
+    if uploaded_file and uploaded_file.name.endswith(".docx") and any(k in prompt.lower() for k in ["koreksilah", "revisilah", "perbaikilah"]):
+        file_text = extract_text_from_file(uploaded_file)
+        if file_text:
+            st.info("Sedang menganalisis isi file dan menambahkan komentar AI...")
+            with st.spinner("⏳ Tunggu sebentar..."):
+                revision_prompt = f"Berikan komentar atau saran per paragraf (maksimal 1 kalimat per paragraf) untuk revisi dari dokumen berikut:\n\n{file_text}"
+                response = client.chat.completions.create(
+                    model=st.session_state["openai_model"],
+                    messages=[
+                        {"role": "system", "content": "Beri komentar atau saran per paragraf secara singkat dan sopan."},
+                        {"role": "user", "content": revision_prompt}
+                    ],
+                    max_tokens=1000
+                )
+                suggestions = response.choices[0].message.content.split("\n")
+                docx_doc = docx.Document(uploaded_file)
+                revised_file = add_comments_to_docx(docx_doc, suggestions)
+
+                st.success("✅ File berhasil direvisi!")
+                st.download_button(
+                    label="📥 Unduh File dengan Komentar",
+                    data=revised_file,
+                    file_name=f"revisi_{uploaded_file.name}",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+    elif "buat" in prompt.lower() and "gambar" in prompt.lower():
         st.subheader("🎨 Buat Gambar dari Prompt dengan DALL·E")
         try:
             dalle_response = client.images.generate(
@@ -145,10 +186,8 @@ if prompt := st.chat_input("Ketik pesan..."):
                 text = chunk.choices[0].delta.content or ""
                 reply += text
                 time.sleep(0.05)
-
-                # Deteksi dan render LaTeX atau markdown
                 parts = re.split(r"(\$\$.*?\$\$|\\\[.*?\\\])", reply, flags=re.DOTALL)
-                with message_placeholder.container():  # Hapus dulu konten sebelumnya
+                with message_placeholder.container():
                     for part in parts:
                         if part.startswith("$$") and part.endswith("$$"):
                             st.latex(part[2:-2])
@@ -156,6 +195,4 @@ if prompt := st.chat_input("Ketik pesan..."):
                             st.latex(part[2:-2])
                         else:
                             st.markdown(part)
-                time.sleep(0.05)
-
-        st.session_state.messages.append({"role": "assistant", "content": reply})
+            st.session_state.messages.append({"role": "assistant", "content": reply})
