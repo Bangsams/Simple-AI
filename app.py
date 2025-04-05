@@ -168,7 +168,7 @@ if prompt := st.chat_input("Ketik pesan..."):
                 size="1024x1024"
             )
             image_url = dalle_response.data[0].url
-            st.image(image_url, caption="🧠 This propery by ZAK.AI", use_column_width=True)
+            st.image(image_url, caption="🧠 This property by ZAK.AI", use_column_width=True)
             st.session_state.messages.append({"role": "assistant", "content": "🧠 The image based on a prompt."})
             st.chat_message("assistant").markdown("🧠 The image based on prompt.")
         except Exception as e:
