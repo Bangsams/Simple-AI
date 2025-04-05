@@ -159,7 +159,7 @@ if prompt := st.chat_input("Ketik pesan..."):
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
     elif "buat" in prompt.lower() and "gambar" in prompt.lower():
-        st.subheader("🎨 Buat Gambar dari Prompt dengan DALL·E")
+        st.subheader("🎨 Waiting Image generate by ZAK.AI")
         try:
             dalle_response = client.images.generate(
                 model="dall-e-2",
@@ -168,9 +168,9 @@ if prompt := st.chat_input("Ketik pesan..."):
                 size="1024x1024"
             )
             image_url = dalle_response.data[0].url
-            st.image(image_url, caption="🧠 Gambar dari AI", use_column_width=True)
-            st.session_state.messages.append({"role": "assistant", "content": "🧠 Gambar dari AI berdasarkan prompt."})
-            st.chat_message("assistant").markdown("🧠 Gambar dari AI berdasarkan prompt.")
+            st.image(image_url, caption="🧠 This propery by ZAK.AI", use_column_width=True)
+            st.session_state.messages.append({"role": "assistant", "content": "🧠 The image based on a prompt."})
+            st.chat_message("assistant").markdown("🧠 The image based on prompt.")
         except Exception as e:
             st.error(f"❌ Gagal membuat gambar: {str(e)}")
     else:
